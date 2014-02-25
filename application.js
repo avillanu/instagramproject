@@ -1,109 +1,125 @@
-// A simple (it does the job) function for template parsing.
- $(document).ready(function() {
-            $('.fancybox').fancybox();
-
-  $('body').on('click', '.paginate a.btn', function(){
-      var tagID = $(this).attr('data-max-tag-id');
-      fetchPhotos(tagID);
-      return false;
-    });
-
- $("#manual2").click(function() {
-		$.fancybox([
-			'http://farm5.static.flickr.com/4044/4286199901_33844563eb.jpg',
-			'http://farm3.static.flickr.com/2687/4220681515_cc4f42d6b9.jpg',
-			{
-				'href'	: 'http://farm5.static.flickr.com/4005/4213562882_851e92f326.jpg',
-				'title'	: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
-			}
-		], {
-			'padding'			: 0,
-			'transitionIn'		: 'none',
-			'transitionOut'		: 'none',
-			'type'              : 'image',
-			'changeFade'        : 0
-		});
-	});
-  
-
-
-
-        });
-
-
-
-
 var Instagram = {};
-Instagram.Template = {};
 
-Instagram.Template.Views = {
+// Small object for holding important configuration data.
+Instagram.Config = {
+  clientID: '6ebe06b55f854d908ed98560172980ca',
+  apiHost: 'https://api.instagram.com'
+};
 
-  "photo": "<div class='photo'>" +
-            "<a href='{instagram.images.thumbnail.url}' class='fancybox'><img class='main' src='{photo_url}' width='250' height='250' /></a>" +
-            "<img class='avatar_url' width='40' height='40' src='{avatar}' />" +
-            "<span class='heart'><strong>{like_count}</strong></span>" +
-          "</div>"
-};
-function toTemplate(photo){
-	photo = {
-		like_count: photo.likes.count,
-		avatar_url: photo.user.profile_picture,
-		photo_url: photo.images.low_resolution.url,
-		url:photo.link
-};
+
+// ************************
+// ** Main Application Code
+// ************************
+(function(){
+  var photoTemplate, resource;
+
   function init(){
     bindEventHandlers();
-}
+    photoTemplate = _.template($('#photo-template').html());
+  }
+
+  function toTemplate(photo){
+    photo = {
+      count: photo.likes.count,
+      avatar: photo.user.profile_picture,
+      photo: photo.images.low_resolution.url,
+      url: photo.link
+    };
+
+    return photoTemplate(photo);
+  }
+
+  function toScreen(photos){
+    var photos_html = '';
+
+    $('.paginate a').attr('data-max-tag-id', photos.pagination.next_max_id)
+                    .fadeIn();
+
+    $.each(photos.data, function(index, photo){
+      photos_html += toTemplate(photo);
+    });
+
+    $('div#photos-wrap').append(photos_html);
+  }
+
+  function generateResource(tag){
+    var config = Instagram.Config, url;
+
+    if(typeof tag === 'undefined'){
+      throw new Error("Resource requires a tag. Try searching for cats.");
+    } else {
+      // Make sure tag is a string, trim any trailing/leading whitespace and take only the first 
+      // word, if there are multiple.
+      tag = String(tag).trim().split(" ")[0];
+    }
+
+    url = config.apiHost + "/v1/tags/" + tag + "/media/recent?callback=?&client_id=" + config.clientID;
+
+    return function(max_id){
+      var next_page;
+      if(typeof max_id === 'string' && max_id.trim() !== '') {
+        next_page = url + "&max_id=" + max_id;
+      }
+      return next_page || url;
+    };
+  }
+
   function paginate(max_id){    
     $.getJSON(generateUrl(tag), toScreen);
   }
-return Instagram.Template.generate('photo', Instagram.Template.View['photo']);
-}
-(function(){
 
-
- function toScreen(photos){
- 	var photos_html = '';
-    $('.paginate a').attr('data-max-tag-id', photos.pagination.next_max_id)
-                    .fadeIn();
-	  $.each(photos.data, function(index, photo){
-  
-  	photo = "<div class='photo'>" +
-    "<a href='"+ photo.images.low_resolution.url + "' class='fancybox' rel='gallery'>"+
-      "<img class='main' src='" + photo.images.thumbnail.url + "' width='250' height='250' />" +
-    "</a>" +
-    "<img class='avatar' width='40' height='40' src='"+photo.user.profile_picture+"' />" +
-    "<span class='heart'><strong>"+photo.likes.count+"</strong></span>" +
-  "</div>";
-  $('div#photos-wrap').append(photo);
-});
+  function search(tag){
+    resource = generateResource(tag);
+    $('.paginate a').hide();
+    $('#photos-wrap *').remove();
+    fetchPhotos();
   }
 
-function fetchPhotos(max_id){
+  function fetchPhotos(max_id){
     $.getJSON(resource(max_id), toScreen);
   }
 
- function paginate(max_id){    
-    $.getJSON(generateUrl(tag), toScreen);
-  }
-
-    function bindEventHandlers(){
+  function bindEventHandlers(){
     $('body').on('click', '.paginate a.btn', function(){
       var tagID = $(this).attr('data-max-tag-id');
       fetchPhotos(tagID);
       return false;
     });
+
+    // Bind an event handler to the `submit` event on the form
+    $('form').on('submit', function(e){
+
+      // Stop the form from fulfilling its destinty.
+      e.preventDefault();
+
+      // Extract the value of the search input text field.
+      var tag = $('input.search-tag').val().trim();
+
+      // Invoke `search`, passing `tag` (unless tag is an empty string).
+      if(tag) {
+        search(tag);
+      };
+
+    });
+
   }
 
-function search(tag){
-  var url = "https://api.instagram.com/v1/tags/" + tag + "/media/recent?callback=?&amp;client_id=6ebe06b55f854d908ed98560172980ca"
-  $.getJSON(url, toScreen);
+  function showPhoto(p){
+    $(p).fadeIn();
+  }
 
-}
+  // Public API
+  Instagram.App = {
+    search: search,
+    showPhoto: showPhoto,
+    init: init
+  };
+}());
 
-
-
-  Instagram.search = search;
-})();
-Instagram.search('supercar');
+$(function(){
+  Instagram.App.init();
+  
+  // Start with a search on cats; we all love cats.
+  Instagram.App.search('cats');  
+});
 
