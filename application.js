@@ -1,3 +1,7 @@
+ $(document).ready(function() {
+            $('.fancybox').fancybox();
+        });
+
 var Instagram = {};
 
 // Small object for holding important configuration data.
@@ -23,7 +27,8 @@ Instagram.Config = {
       count: photo.likes.count,
       avatar: photo.user.profile_picture,
       photo: photo.images.low_resolution.url,
-      url: photo.link
+      url: photo.link,
+      thumb: photo.images.thumbnail.url
     };
 
     return photoTemplate(photo);
