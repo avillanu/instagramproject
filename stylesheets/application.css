@@ -15,6 +15,15 @@ body {
   border-radius:0 0 5px 5px;
 }
 
+.main {
+  z-index: 1;
+}
+
+#photo-template{
+z-index: 1;
+
+}
+
 .search-wrap {
   background: white;
   line-height: 30px;
@@ -54,6 +63,7 @@ body {
   padding: 5px;
   margin: 5px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 
 .photo .heart {

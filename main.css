@@ -53,8 +53,11 @@ body {
   background: white;
   padding: 5px;
   margin: 5px;
+  z-index: 1;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
+
+
 
 .photo .heart {
   height: 16px;
@@ -68,6 +71,11 @@ body {
   border-radius: 2px;
   border: 1px solid #ddd;
   background: white url('../images/fav.png') no-repeat 2px 0;
+}
+
+#photo-template{
+z-index: 1;
+
 }
 
 .paginate {
