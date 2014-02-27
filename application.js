@@ -23,13 +23,15 @@ Instagram.Config = {
   }
 
   function toTemplate(photo){
-    photo = {
-      count: photo.likes.count,
-      avatar: photo.user.profile_picture,
-      photo: photo.images.low_resolution.url,
-      url: photo.link,
-      thumb: photo.images.thumbnail.url
-    };
+   
+
+   photo = {
+   count: photo.likes.count,
+   avatar: photo.user.profile_picture,
+    photo: photo.images.low_resolution.url,
+    url: photo.link,
+    thumb: photo.images.thumbnail.url
+   };
 
     return photoTemplate(photo);
   }
@@ -41,10 +43,22 @@ Instagram.Config = {
                     .fadeIn();
 
     $.each(photos.data, function(index, photo){
-      photos_html += toTemplate(photo);
-    });
 
-    $('div#photos-wrap').append(photos_html);
+photo = "<div class='photo'>" +
+    "<a href='"+ photo.images.low_resolution.url + "' class='fancybox' rel='gallery'>"+
+      "<img class='main' src='" + photo.images.thumbnail.url + "' width='250' height='250' />" +
+    "</a>" +
+    "<img class='avatar' width='40' height='40' src='"+photo.user.profile_picture+"' />" +
+    "<span class='heart'><strong>"+photo.likes.count+"</strong></span>" +
+  "</div>";
+  $('div#photos-wrap').append(photo);
+
+  });
+
+//      photos_html += toTemplate(photo);
+//    });
+
+//    $('div#photos-wrap').append(photos_html);
   }
 
   function generateResource(tag){
@@ -125,6 +139,6 @@ $(function(){
   Instagram.App.init();
   
   // Start with a search on cats; we all love cats.
-  Instagram.App.search('cats');  
+  Instagram.App.search('supercar');  
 });
 
